@@ -1,0 +1,29 @@
+Building wheels for collected packages: llvmlite
+  Building wheel for llvmlite (setup.py) ... error
+  error: subprocess-exited-with-error
+  
+  × python setup.py bdist_wheel did not run successfully.
+  │ exit code: 1
+  ╰─> [15 lines of output]
+      running bdist_wheel
+      /home/pi/audio_classification/test2/bin/python /tmp/pip-install-yvwpievs/llvmlite_038c61f980b645c889d0e66a42dcc00f/ffi/build.py
+      LLVM version... 11.0.1
+      
+      Traceback (most recent call last):
+        File "/tmp/pip-install-yvwpievs/llvmlite_038c61f980b645c889d0e66a42dcc00f/ffi/build.py", line 235, in <module>
+          main()
+        File "/tmp/pip-install-yvwpievs/llvmlite_038c61f980b645c889d0e66a42dcc00f/ffi/build.py", line 225, in main
+          main_posix('linux', '.so')
+        File "/tmp/pip-install-yvwpievs/llvmlite_038c61f980b645c889d0e66a42dcc00f/ffi/build.py", line 181, in main_posix
+          raise RuntimeError(msg)
+      RuntimeError: Building llvmlite requires LLVM 14, got '11.0.1'. Be sure to set LLVM_CONFIG to the right executable path.
+      Read the documentation at http://llvmlite.pydata.org/ for more information about building llvmlite.
+      
+      error: command '/home/pi/audio_classification/test2/bin/python' failed with exit code 1
+      [end of output]
+  
+  note: This error originates from a subprocess, and is likely not a problem with pip.
+  ERROR: Failed building wheel for llvmlite
+  Running setup.py clean for llvmlite
+Failed to build llvmlite
+ERROR: ERROR: Failed to build installable wheels for some pyproject.toml based projects (llvmlite)
