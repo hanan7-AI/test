@@ -1,0 +1,49 @@
+  ERROR: Command errored out with exit status 1:
+   command: /usr/bin/python3 -u -c 'import sys, setuptools, tokenize; sys.argv[0] = '"'"'/tmp/pip-install-zl1p5rb1/llvmlite_7bd11080be35401f9284d59c41072ecc/setup.py'"'"'; __file__='"'"'/tmp/pip-install-zl1p5rb1/llvmlite_7bd11080be35401f9284d59c41072ecc/setup.py'"'"';f=getattr(tokenize, '"'"'open'"'"', open)(__file__);code=f.read().replace('"'"'\r\n'"'"', '"'"'\n'"'"');f.close();exec(compile(code, __file__, '"'"'exec'"'"'))' bdist_wheel -d /tmp/pip-wheel-om0bgtx1
+       cwd: /tmp/pip-install-zl1p5rb1/llvmlite_7bd11080be35401f9284d59c41072ecc/
+  Complete output (15 lines):
+  running bdist_wheel
+  /usr/bin/python3 /tmp/pip-install-zl1p5rb1/llvmlite_7bd11080be35401f9284d59c41072ecc/ffi/build.py
+  LLVM version... 11.0.1
+  
+  Traceback (most recent call last):
+    File "/tmp/pip-install-zl1p5rb1/llvmlite_7bd11080be35401f9284d59c41072ecc/ffi/build.py", line 235, in <module>
+      main()
+    File "/tmp/pip-install-zl1p5rb1/llvmlite_7bd11080be35401f9284d59c41072ecc/ffi/build.py", line 225, in main
+      main_posix('linux', '.so')
+    File "/tmp/pip-install-zl1p5rb1/llvmlite_7bd11080be35401f9284d59c41072ecc/ffi/build.py", line 181, in main_posix
+      raise RuntimeError(msg)
+  RuntimeError: Building llvmlite requires LLVM 14, got '11.0.1'. Be sure to set LLVM_CONFIG to the right executable path.
+  Read the documentation at http://llvmlite.pydata.org/ for more information about building llvmlite.
+  
+  error: command '/usr/bin/python3' failed with exit code 1
+  ----------------------------------------
+  ERROR: Failed building wheel for llvmlite
+  Running setup.py clean for llvmlite
+Failed to build llvmlite
+Installing collected packages: llvmlite, numba, resampy, librosa
+    Running setup.py install for llvmlite ... error
+    ERROR: Command errored out with exit status 1:
+     command: /usr/bin/python3 -u -c 'import sys, setuptools, tokenize; sys.argv[0] = '"'"'/tmp/pip-install-zl1p5rb1/llvmlite_7bd11080be35401f9284d59c41072ecc/setup.py'"'"'; __file__='"'"'/tmp/pip-install-zl1p5rb1/llvmlite_7bd11080be35401f9284d59c41072ecc/setup.py'"'"';f=getattr(tokenize, '"'"'open'"'"', open)(__file__);code=f.read().replace('"'"'\r\n'"'"', '"'"'\n'"'"');f.close();exec(compile(code, __file__, '"'"'exec'"'"'))' install --record /tmp/pip-record-0mt5z1_e/install-record.txt --single-version-externally-managed --user --prefix= --compile --install-headers /home/pi/.local/include/python3.9/llvmlite
+         cwd: /tmp/pip-install-zl1p5rb1/llvmlite_7bd11080be35401f9284d59c41072ecc/
+    Complete output (18 lines):
+    running install
+    running build
+    got version from file /tmp/pip-install-zl1p5rb1/llvmlite_7bd11080be35401f9284d59c41072ecc/llvmlite/_version.py {'version': '0.43.0', 'full': '6c786059354260a0ae93f9d0144d4016ab3d63b4'}
+    running build_ext
+    /usr/bin/python3 /tmp/pip-install-zl1p5rb1/llvmlite_7bd11080be35401f9284d59c41072ecc/ffi/build.py
+    LLVM version... 11.0.1
+    
+    Traceback (most recent call last):
+      File "/tmp/pip-install-zl1p5rb1/llvmlite_7bd11080be35401f9284d59c41072ecc/ffi/build.py", line 235, in <module>
+        main()
+      File "/tmp/pip-install-zl1p5rb1/llvmlite_7bd11080be35401f9284d59c41072ecc/ffi/build.py", line 225, in main
+        main_posix('linux', '.so')
+      File "/tmp/pip-install-zl1p5rb1/llvmlite_7bd11080be35401f9284d59c41072ecc/ffi/build.py", line 181, in main_posix
+        raise RuntimeError(msg)
+    RuntimeError: Building llvmlite requires LLVM 14, got '11.0.1'. Be sure to set LLVM_CONFIG to the right executable path.
+    Read the documentation at http://llvmlite.pydata.org/ for more information about building llvmlite.
+    
+    error: command '/usr/bin/python3' failed with exit code 1
+    ----------------------------------------
+ERROR: Command errored out with exit status 1: /usr/bin/python3 -u -c 'import sys, setuptools, tokenize; sys.argv[0] = '"'"'/tmp/pip-install-zl1p5rb1/llvmlite_7bd11080be35401f9284d59c41072ecc/setup.py'"'"'; __file__='"'"'/tmp/pip-install-zl1p5rb1/llvmlite_7bd11080be35401f9284d59c41072ecc/setup.py'"'"';f=getattr(tokenize, '"'"'open'"'"', open)(__file__);code=f.read().replace('"'"'\r\n'"'"', '"'"'\n'"'"');f.close();exec(compile(code, __file__, '"'"'exec'"'"'))' install --record /tmp/pip-record-0mt5z1_e/install-record.txt --single-version-externally-managed --user --prefix= --compile --install-headers /home/pi/.local/include/python3.9/llvmlite Check the logs for full command output.
