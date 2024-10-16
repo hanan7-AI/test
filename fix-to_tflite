@@ -1,0 +1,66 @@
+import os
+import numpy as np
+import sys
+import matplotlib.pyplot as plt
+import common as com
+import tensorflow as tf
+
+def test_single_file(audio_file_path, model_file_path):
+    if not os.path.exists(audio_file_path):
+        com.logger.error(f"Audio file not found: {audio_file_path}")
+        sys.exit(-1)
+
+    if not os.path.exists(model_file_path):
+        com.logger.error(f"Model file not found: {model_file_path}")
+        sys.exit(-1)
+
+    # Load the TFLite model and allocate tensors
+    interpreter = tf.lite.Interpreter(model_path=model_file_path)
+    interpreter.allocate_tensors()
+
+    # Get input and output tensors
+    input_details = interpreter.get_input_details()
+    output_details = interpreter.get_output_details()
+
+    # Load parameters from the configuration file (baseline.yaml)
+    param = com.yaml_load()
+
+    # Extract features from the audio file using the same parameters as the training process
+    data = com.file_to_vector_array(
+        file_name=audio_file_path,
+        n_mels=param["feature"]["n_mels"],
+        frames=param["feature"]["frames"],
+        n_fft=param["feature"]["n_fft"],
+        hop_length=param["feature"]["hop_length"],
+        power=param["feature"]["power"]
+    )
+
+    # Perform inference using TensorFlow Lite
+    # Assuming the model expects a batch of samples, add an extra dimension
+    data = np.expand_dims(data, axis=0).astype(np.float32)
+
+    # Set the tensor to point to the input data to be inferred
+    interpreter.set_tensor(input_details[0]['index'], data)
+
+    # Run the inference
+    interpreter.invoke()
+
+    # Get the output tensor
+    output_data = interpreter.get_tensor(output_details[0]['index'])
+
+    # Calculate the reconstruction error
+    errors = np.mean(np.square(data - output_data), axis=1)
+    anomaly_score = np.mean(errors)
+
+    # Output the anomaly score
+    com.logger.info(f"Anomaly score for file {os.path.basename(audio_file_path)}: {anomaly_score}")
+    return anomaly_score
+
+if _name_ == "_main_":
+    # the audio file path and model path directly
+    model_file_path = r"C:\ASD\dcase2020_task2_baseline\model\model_slider.tflite"
+    audio_file_path = r"C:\ASD\dcase2020_task2_baseline\dev_data\slider\test\anomaly_id_00_00000000.wav"
+
+    # get the anomaly score
+    anomaly_score = test_single_file(audio_file_path, model_file_path)
+    print(f"Anomaly Score: {anomaly_score}")
