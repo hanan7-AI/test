@@ -1,0 +1,101 @@
+def test_single_file(audio_file_path, model_file_path):
+    if not os.path.exists(audio_file_path) or not os.path.exists(model_file_path):
+        logger.error(f"File not found: {audio_file_path} or {model_file_path}")
+        sys.exit(-1)
+
+    # Load the TFLite model
+    interpreter = tf.lite.Interpreter(model_path=model_file_path)
+    interpreter.allocate_tensors()
+    input_details = interpreter.get_input_details()
+    output_details = interpreter.get_output_details()
+
+    # Load and preprocess the audio data
+    data = com.file_to_vector_array(
+        file_name=audio_file_path,
+        n_mels=param["feature"]["n_mels"],
+        frames=param["feature"]["frames"],
+        n_fft=param["feature"]["n_fft"],
+        hop_length=param["feature"]["hop_length"],
+        power=param["feature"]["power"]
+    )
+
+    # Make predictions using the TFLite model
+    interpreter.set_tensor(input_details[0]['index'], data.astype(np.float32))
+    interpreter.invoke()
+    output_data = interpreter.get_tensor(output_details[0]['index'])
+    errors = np.mean(np.square(data - output_data), axis=1)
+    anomaly_score = np.mean(errors)
+
+    logger.info(f"Anomaly score for file {os.path.basename(audio_file_path)}: {anomaly_score}")
+    return anomaly_score
+
+
+
+Step 3: Running on Raspberry Pi
+Ensure that TensorFlow Lite is installed on your Raspberry Pi, and your environment is set up to run Python scripts. 
+You might also need to ensure that librosa and other dependencies are compatible and installed on the Pi.
+
+Final Checks and Running
+Modify the file paths and configurations in your scripts to match the directory structure and paths on your Raspberry Pi.
+Run the modified scripts on your Raspberry Pi to test their functionality and performance.
+Each step outlined requires changes to existing scripts or the creation of new scripts. Make sure to review and test each part to ensure compatibility,
+especially considering the constraints and performance of the Raspberry Pi.
+
+
+
+The error you are experiencing, particularly the ValueError: Cannot set tensor: Dimension mismatch. 
+Got 309 but expected 1 for dimension 0 of input 0, 
+indicates that the shape of the input data you are trying to feed into your TensorFlow Lite model does not match the expected input shape of the model. 
+Here’s how to address this issue:
+
+Step 1: Ensure Correct Input Shape
+Check the expected input shape of your TFLite model:
+After loading the model and allocating tensors, print the expected input shape using the input_details from the interpreter.
+python
+Copy code
+print("Expected input shape:", input_details[0]['shape'])
+Adjust the data shape to match the model’s expectation:
+Before setting the tensor, ensure that the data's shape matches the expected shape.
+If your model expects a single feature vector per prediction but you're passing multiple vectors,
+you will need to loop through each vector or adjust your data preparation accordingly.
+python
+Copy code
+data = com.file_to_vector_array(
+    file_name=audio_file_path,
+    n_mels=param["feature"]["n_mels"],
+    frames=param["feature"]["frames"],
+    n_fft=param["feature"]["n_fft"],
+    hop_length=param["feature"]["hop_length"],
+    power=param["feature"]["power"]
+)
+
+# Reshape data if necessary to match the input shape expected by the model
+if len(data.shape) == 2 and data.shape[0] > 1:  # Assuming data is in shape (batch_size, features)
+    # If your model expects one feature vector at a time:
+    for vector in data:
+        vector = vector.reshape(input_details[0]['shape'])  # reshape to match the input shape
+        interpreter.set_tensor(input_details[0]['index'], vector)
+        interpreter.invoke()
+        # Handle prediction results here
+else:
+    # This block assumes that the data already matches the expected input shape
+    interpreter.set_tensor(input_details[0]['index'], data)
+    interpreter.invoke()
+Step 2: Handling Warnings
+The warnings related to the smallest subnormal values being zero are related to how NumPy handles very small floating-point numbers on your platform. 
+These warnings are generally not critical but can be suppressed if they are cluttering your output.
+
+Suppress warnings:
+You can suppress these specific warnings using Python’s warnings module if they are not relevant to your use case.
+python
+Copy code
+import warnings
+
+warnings.filterwarnings("ignore", category=UserWarning, message="The value of the smallest subnormal*")
+Add this at the beginning of your script to prevent these warnings from appearing.
+
+Step 3: Run and Verify
+With these adjustments, run your script again on the Raspberry Pi.
+Verify that the correct shape of data is being fed to the model and that there are no longer any dimension mismatch errors.
+This should help in successfully running your TFLite model on the Raspberry Pi without encountering the mentioned errors. 
+If further issues arise, consider checking each step and ensuring compatibility with your specific model and data setup.
