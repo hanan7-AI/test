@@ -1,0 +1,28 @@
+# Flatten the array to a 1D vector
+    flattened_array = vector_array.flatten()
+
+    # 07 reshape to (1, 10) by trimming or padding if necessary
+    if len(flattened_array) >= 10:
+        reshaped_array = flattened_array[:10].reshape(1, 10)  # Trim if too large
+    else:
+        reshaped_array = np.pad(flattened_array, (0, 10 - len(flattened_array)), mode='constant').reshape(1, 10)  # Pad if too small
+
+    return reshaped_array
+
+
+
+1)
+# Assuming vector_array is the result from file_to_vector_array
+reshaped_array = vector_array.reshape(1, 10)
+
+2)
+# Flatten and take the first 10 elements
+reshaped_array = vector_array.flatten()[:10].reshape(1, 10)
+
+3)
+import numpy as np
+
+# Flatten the array and pad it to have 10 elements
+flattened_array = vector_array.flatten()
+padded_array = np.pad(flattened_array, (0, 10 - len(flattened_array)), mode='constant')
+reshaped_array = padded_array.reshape(1, 10)
