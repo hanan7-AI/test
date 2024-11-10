@@ -1,52 +1,46 @@
-import os
 import numpy as np
-import sys
-import matplotlib.pyplot as plt
+import tflite_runtime.interpreter as tflite
 import common as com
-import keras_model
+from common import yaml_load, file_to_vector_array  # Import from common.py
 
-def test_single_file(audio_file_path, model_file_path):
-    if not os.path.exists(audio_file_path):
-        com.logger.error(f"Audio file not found: {audio_file_path}")
-        sys.exit(-1)
-
-
-    if not os.path.exists(model_file_path):
-        com.logger.error(f"Model file not found: {model_file_path}")
-        sys.exit(-1)
-
-    # Load the trained model
-    model = keras_model.load_model(model_file_path)
-    model.summary()
-
-    # Load parameters from the configuration file (baseline.yaml)
+def run_inference_on_audio(model_path, audio_file_path, config_path="baseline.yaml"):
+    # Load YAML configuration
     param = com.yaml_load()
 
-    # Extract features from the audio file using the same parameters as the training process
-    data = com.file_to_vector_array(
+    # Extract features from the audio file
+    feature_vector = file_to_vector_array(
         file_name=audio_file_path,
-        n_mels=param["feature"]["n_mels"],
-        frames=param["feature"]["frames"],
-        n_fft=param["feature"]["n_fft"],
-        hop_length=param["feature"]["hop_length"],
-        power=param["feature"]["power"]
+        n_mels=param['feature']['n_mels'],
+        frames=param['feature']['frames'],
+        n_fft=param['feature']['n_fft'],
+        hop_length=param['feature']['hop_length'],
+        power=param['feature']['power']
     )
 
+    if feature_vector is None:
+        print("Feature extraction failed.")
+        return None
 
-    # Predict the anomaly score by calculating the reconstruction error
-    errors = np.mean(np.square(data - model.predict(data)), axis=1)
-    anomaly_score = np.mean(errors)
+    # Initialize TFLite interpreter
+    interpreter = tflite.Interpreter(model_path=model_path)
+    interpreter.allocate_tensors()
 
-    # Output the anomaly score
-    com.logger.info(f"Anomaly score for file {os.path.basename(audio_file_path)}: {anomaly_score}")
-    return anomaly_score
+    # Get input and output details
+    input_details = interpreter.get_input_details()
+    output_details = interpreter.get_output_details()
 
+    # Set the tensor for input data
+    interpreter.set_tensor(input_details[0]['index'], feature_vector.astype(np.float32))
 
-if __name__ == "__main__":
-    # the audio file path and model path directly
-    model_file_path = r"C:\ASD\dcase2020_task2_baseline\model\model_slider.hdf5"
-    audio_file_path = r"C:\ASD\dcase2020_task2_baseline\dev_data\slider\test\anomaly_id_00_00000000.wav"
+    # Run inference
+    interpreter.invoke()
 
-    # get the anomaly score
-    anomaly_score = test_single_file(audio_file_path, model_file_path)
-    print(f"Anomaly Score: {anomaly_score}")
+    # Retrieve output data
+    output_data = interpreter.get_tensor(output_details[0]['index'])
+    return output_data
+
+# Example usage
+model_path = "pump_model.tflite"
+audio_file_path = "anomaly_id_00_00000000.wav"
+output = run_inference_on_audio(model_path, audio_file_path)
+print("Output:", output)

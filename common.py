@@ -158,8 +158,11 @@ def file_to_vector_array(file_name,
     vector_array = numpy.zeros((vector_array_size, dims))
     for t in range(frames):
         vector_array[:, n_mels * t: n_mels * (t + 1)] = log_mel_spectrogram[:, t: t + vector_array_size].T
-
-    return vector_array
+   
+    # 07 flatten and take the first 10 elements
+    #reshaped_vector_array = vector_array.flatten()[:10].reshape(1, 10)
+    #return reshaped_vector_array
+    return vector_array.flatten()[:10].reshape(1, 10)
 
 
 # load dataset
