@@ -1,0 +1,56 @@
+import librosa
+import numpy as np
+import tflite_runtime.interpreter as tflite
+
+# Load the TFLite model
+def load_tflite_model(model_path):
+    interpreter = tflite.Interpreter(model_path=model_path)
+    interpreter.allocate_tensors()
+    return interpreter
+
+# Load the audio file
+def load_audio(file_path):
+    y, sr = librosa.load(file_path, sr=None)
+    return y, sr
+
+# Extract log-mel spectrogram features
+def extract_features(y, sr, n_mels=128, hop_length=512):
+    mel_spectrogram = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=n_mels, hop_length=hop_length)
+    log_mel_spectrogram = librosa.power_to_db(mel_spectrogram)
+    return log_mel_spectrogram.T
+
+# Pass through the TensorFlow Lite model and predict anomaly score
+def predict_anomaly(file_path, interpreter):
+    y, sr = load_audio(file_path)
+    features = extract_features(y, sr)
+
+    # Reshape features for input to the model
+    features = features.reshape(1, -1).astype(np.float32)
+    features = features[:, :640]  # Truncate to 640 if necessary for the model
+
+    # Get input and output details for the interpreter
+    input_details = interpreter.get_input_details()
+    output_details = interpreter.get_output_details()
+
+    # Set the input tensor
+    interpreter.set_tensor(input_details[0]['index'], features)
+
+    # Run inference
+    interpreter.invoke()
+
+    # Get the reconstructed output
+    reconstructed = interpreter.get_tensor(output_details[0]['index'])
+
+    # Calculate the reconstruction error
+    error = np.mean(np.square(features - reconstructed))
+
+    return error
+
+# Set file paths
+model_path = r"C:\ASD\dcase2020_task2_baseline\model\model_fan.tflite"
+file_path = r"C:\ASD\dcase2020_task2_baseline\dev_data\fan\test\anomaly_id_00_00000000.wav"
+
+# Load the model and predict anomaly score
+interpreter = load_tflite_model(model_path)
+anomaly_score = predict_anomaly(file_path, interpreter)
+print(f'Anomaly score for file {file_path}: {anomaly_score}')
