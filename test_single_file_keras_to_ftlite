@@ -1,0 +1,46 @@
+import numpy as np
+import tflite_runtime.interpreter as tflite
+import os
+import com  # assuming com module handles configuration and feature extraction
+
+def get_anomaly_score_tflite(model_file_path, audio_file_path):
+    # Load TFLite model and allocate tensors
+    interpreter = tflite.Interpreter(model_path=model_file_path)
+    interpreter.allocate_tensors()
+    
+    # Get input and output details
+    input_details = interpreter.get_input_details()
+    output_details = interpreter.get_output_details()
+
+    # Load parameters from the configuration file (baseline.yaml)
+    param = com.yaml_load()
+
+    # Extract features from the audio file using the same parameters as the training process
+    data = com.file_to_vector_array(
+        file_name=audio_file_path,
+        n_mels=param["feature"]["n_mels"],
+        frames=param["feature"]["frames"],
+        n_fft=param["feature"]["n_fft"],
+        hop_length=param["feature"]["hop_length"],
+        power=param["feature"]["power"]
+    )
+
+    # Prepare the data for input into the model
+    data = np.expand_dims(data, axis=0).astype(np.float32)  # Adjust if model requires different dimensions
+
+    # Set the input tensor
+    interpreter.set_tensor(input_details[0]['index'], data)
+    
+    # Run inference
+    interpreter.invoke()
+    
+    # Get the model's prediction
+    prediction = interpreter.get_tensor(output_details[0]['index'])
+
+    # Calculate the reconstruction error to get the anomaly score
+    errors = np.mean(np.square(data - prediction), axis=1)
+    anomaly_score = np.mean(errors)
+
+    # Output the anomaly score
+    com.logger.info(f"Anomaly score for file {os.path.basename(audio_file_path)}: {anomaly_score}")
+    return anomaly_score
