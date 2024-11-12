@@ -1,0 +1,5 @@
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+
+input info [{'name': 'serving_default_input_4:0', 'index': 0, 'shape': array([  1, 640], dtype=int32), 'shape_signature': array([ -1, 640], dtype=int32), 'dtype': <class 'numpy.float32'>, 'quantization': (0.0, 0), 'quantization_parameters': {'scales': array([], dtype=float32), 'zero_points': array([], dtype=int32), 'quantized_dimension': 0}, 'sparsity_parameters': {}}]
+
+output info [{'name': 'StatefulPartitionedCall:0', 'index': 30, 'shape': array([  1, 640], dtype=int32), 'shape_signature': array([ -1, 640], dtype=int32), 'dtype': <class 'numpy.float32'>, 'quantization': (0.0, 0), 'quantization_parameters': {'scales': array([], dtype=float32), 'zero_points': array([], dtype=int32), 'quantized_dimension': 0}, 'sparsity_parameters': {}}]
