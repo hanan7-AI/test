@@ -1,0 +1,38 @@
+import sounddevice as sd
+import numpy as np
+import wave
+import os
+
+# Settings
+duration = 10  
+sample_rate = 24000  
+
+unbalanced_weights = [1, 3, 5]
+speeds = [1000, 2000, 5000]
+
+audios_folder=r"C:\Users\alqahth\OneDrive - Air Products and Chemicals, Inc\Documents\audios_folder"
+
+for weight in unbalanced_weights:
+    for speed in speeds:
+        print(f"Preparing to record for Speed: {speed} with Unbalanced Weight: {weight}")
+        
+        # Record audio
+        print("Recording...")
+        audio_data = sd.rec(int(duration * sample_rate), samplerate=sample_rate, channels=1, dtype='int16')
+        sd.wait()  # Wait until recording is finished
+        print("Recording finished.")
+        
+        file_name = os.path.join(audios_folder, f"weight_{weight}speed{speed}.wav")
+        with wave.open(file_name, 'wb') as wf:
+            wf.setnchannels(1)  # Mono
+            wf.setsampwidth(2)  # 16-bit
+            wf.setframerate(sample_rate)
+            wf.writeframes(audio_data.tobytes())
+            
+    # Ask the user to change the weight and confirm to continue
+    while True:
+        proceed = input("Change the weight and press 'yes' to continue: ").lower()
+        if proceed == 'yes':
+            break
+        else:
+            print("Waiting for confirmation to proceed...")
