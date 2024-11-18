@@ -1,0 +1,24 @@
+import numpy as np
+import wave
+import sounddevice as sd
+import os
+
+duration = 10 
+sample_rate = 24000
+
+speed = input("Enter the speed: ")
+print("Recording...")
+
+audio_data = sd.rec(int(duration * sample_rate), samplerate=sample_rate, channels=1, dtype='int16')
+sd.wait()  # Wait until recording is finished
+print("Recording finished.")
+
+audios_folder=r"C:\Users\alqahth\OneDrive - Air Products and Chemicals, Inc\Documents\audios_folder"
+file_name = os.path.join(audios_folder,f"bn_rotor_kit_unbal_0gm_{speed}rpm.wav")
+with wave.open(file_name, 'wb') as wf:
+    wf.setnchannels(1)  # Mono
+    wf.setsampwidth(2)  # 16-bit
+    wf.setframerate(sample_rate)
+    wf.writeframes(audio_data.tobytes())
+
+print(f"Audio saved as {file_name}")
