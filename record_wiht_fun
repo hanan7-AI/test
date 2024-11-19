@@ -1,0 +1,74 @@
+import sounddevice as sd
+import numpy as np
+import wave
+import os
+
+
+from scipy.fftpack import fft
+from scipy.io import wavfile as wav
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Settings
+duration = 1 
+sample_rate = 24000  
+unbalanc_weights = [1, 3, 5]
+speeds = [1000, 2000, 5000]
+audios_folder="/home/pi/audios_folder/recording_multi_fils"
+num_audios= 2  #  int(input("Enter the number of audio files: "))
+audio_id=1
+
+
+def plo_audio_data_from_file(file_name):
+    #file_name="run_1_unbalweight_1gm_speed_5000rpm.wav"
+    sample_rate, data = wav.read(file_name)
+    N=len(data)
+    spectre=fft(data)
+    freq=np.fft.fftfreq(N,1/sample_rate)
+    mask= freq>0
+
+    plt.figure(figsize=(10,4))
+    plt.subplot(1,2,1)
+    time_axis=np.linspace(0,len(data) / sample_rate, len(data))
+    plt.plot(time_axis,data)
+    plt.title('WAV Signal')
+    plt.xlabel('Time(s)')
+    plt.ylabel('Amplitude')
+
+
+    plt.subplot(1,2,2)
+    plt.plot(freq[mask],np.abs(spectre[mask]))
+    plt.plot(np.abs(spectre))
+    plt.title('FFT')
+    plt.xlabel('Frequency')
+    plt.ylabel('Amplitude')
+    plt.xlim(0,1000)
+    plt.tight_layout()
+    plt.show()
+
+    
+
+
+for weight in unbalanc_weights:
+    for speed in speeds:
+        print("Set the speed to:", speed, "with Unbalanced Weight:" , weight)
+        check_point = input("Press any key when you are ready to record: ").lower()
+        for num_audio in range (0, num_audios ):
+            # Record audio
+            print("Recording...", num_audio+1)
+            audio_data = sd.rec(int(duration * sample_rate), samplerate=sample_rate, channels=1, dtype='int16')
+            sd.wait()  # Wait until recording is finished
+            print("Recording finished.")
+            
+            file_name = os.path.join(audios_folder, f"run_{num_audio+1}_unbalweight_{weight}gm_speed_{speed}rpm.wav")
+            with wave.open(file_name, 'wb') as wf:
+                wf.setnchannels(1)  # Mono
+                wf.setsampwidth(2)  # 16-bit
+                wf.setframerate(sample_rate)
+                wf.writeframes(audio_data.tobytes())
+            def plo_audio_data_from_file()  
+            audio_id +=1
+
+
+
+
