@@ -1,0 +1,17 @@
+plt.figure(figsize=(12,6))
+plt.subplot(1,2,1)
+time_axis=np.linspace(0,len(data) / sample_rate, len(data))
+plt.plot(time_axis,data)
+plt.title('WAV Signal')
+plt.xlabel('Frequency')
+plt.ylabel('Amplitude')
+
+
+plt.subplot(1,2,2)
+plt.plot(freq[mask],np.abs(spectre[mask]))
+# plt.plot(np.abs(spectre))
+plt.title('FFT')
+plt.xlabel('Frequency')
+plt.ylabel('Amplitude')
+plt.tight_layout()
+plt.show
