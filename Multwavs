@@ -1,0 +1,33 @@
+import os
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.io import wavfile
+
+# Directory containing WAV files
+directory = "path_to_your_wav_files"  # Replace with your directory
+
+# Find all `.wav` files
+wav_files = [os.path.join(directory, f) for f in os.listdir(directory) if f.endswith(".wav")]
+
+# Check for files
+if not wav_files:
+    print("No WAV files found!")
+    exit()
+
+# Plot FFT for each file
+plt.figure(figsize=(12, 6))
+for file in wav_files:
+    sample_rate, data = wavfile.read(file)
+    if data.ndim > 1:  # Handle stereo by selecting one channel
+        data = data[:, 0]
+    fft = np.abs(np.fft.fft(data))[:len(data)//2]
+    freqs = np.fft.fftfreq(len(data), 1 / sample_rate)[:len(data)//2]
+    plt.plot(freqs, fft, label=os.path.basename(file))
+
+# Finalize plot
+plt.title("FFT of All WAV Files")
+plt.xlabel("Frequency (Hz)")
+plt.ylabel("Amplitude")
+plt.legend()
+plt.grid()
+plt.show()
