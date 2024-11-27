@@ -1,0 +1,39 @@
+import os
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.io import wavfile
+
+# Directory containing your WAV files
+directory = "path_to_your_wav_files"
+
+# Substring pattern to look for in filenames
+name_pattern = "3000_rpm"
+
+# Loop through all files in the directory
+for filename in os.listdir(directory):
+    if filename.endswith(".wav") and name_pattern in filename:
+        filepath = os.path.join(directory, filename)
+        
+        # Read the WAV file
+        sample_rate, data = wavfile.read(filepath)
+        
+        # Handle stereo audio by taking one channel
+        if len(data.shape) > 1:
+            data = data[:, 0]
+        
+        # Compute the FFT
+        fft_values = np.fft.fft(data)
+        fft_frequencies = np.fft.fftfreq(len(data), 1 / sample_rate)
+        
+        # Take the positive half of the spectrum
+        positive_freqs = fft_frequencies[:len(fft_frequencies)//2]
+        positive_fft_values = np.abs(fft_values[:len(fft_values)//2])
+        
+        # Plot the FFT
+        plt.figure(figsize=(10, 6))
+        plt.plot(positive_freqs, positive_fft_values)
+        plt.title(f"FFT of {filename}")
+        plt.xlabel("Frequency (Hz)")
+        plt.ylabel("Amplitude")
+        plt.grid()
+        plt.show()
