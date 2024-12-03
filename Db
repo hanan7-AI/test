@@ -1,0 +1,79 @@
+import os
+import numpy as np
+from scipy.io import wavfile
+from scipy.fftpack import fft
+from sklearn.cluster import DBSCAN
+import matplotlib.pyplot as plt
+import pandas as pd
+
+# Step 1: Load all audio files from a folder
+def load_audio_files(folder_path):
+    files = [os.path.join(folder_path, f) for f in os.listdir(folder_path) if f.endswith('.wav')]
+    return files
+
+# Step 2: Compute FFT for an audio file
+def compute_fft(file_path, n_bins=1024):
+    samplerate, data = wavfile.read(file_path)
+    data = data / np.max(np.abs(data))  # Normalize
+    fft_result = fft(data)
+    freqs = np.fft.fftfreq(len(fft_result), 1/samplerate)
+    positive_freqs = freqs[freqs > 0]
+    magnitude = np.abs(fft_result[freqs > 0])
+    return positive_freqs[:n_bins], magnitude[:n_bins]
+
+# Step 3: Extract FFT features for all files
+def extract_features(files, n_bins=1024):
+    feature_list = []
+    for file in files:
+        freqs, magnitudes = compute_fft(file, n_bins)
+        dominant_freq = freqs[np.argmax(magnitudes)]  # Dominant frequency
+        avg_magnitude = np.mean(magnitudes)  # Average magnitude
+        feature_list.append([file, dominant_freq, avg_magnitude])
+    return feature_list
+
+# Step 4: Cluster features using DBSCAN
+def cluster_with_dbscan(features, eps=10, min_samples=3):
+    feature_matrix = np.array([f[1:] for f in features])  # Exclude file names
+    dbscan = DBSCAN(eps=eps, min_samples=min_samples)
+    labels = dbscan.fit_predict(feature_matrix)
+    return labels
+
+# Step 5: Plot DBSCAN results
+def plot_dbscan(features, labels):
+    feature_matrix = np.array([f[1:] for f in features])
+    unique_labels = set(labels)
+    plt.figure(figsize=(10, 6))
+    for label in unique_labels:
+        if label == -1:
+            # Noise points
+            color = 'k'
+            label_name = 'Noise'
+        else:
+            color = plt.cm.jet(float(label) / max(unique_labels))
+            label_name = f"Cluster {label}"
+        plt.scatter(feature_matrix[labels == label, 0], feature_matrix[labels == label, 1],
+                    c=[color], label=label_name, edgecolor='k', alpha=0.6)
+    plt.xlabel("Dominant Frequency (Hz)")
+    plt.ylabel("Average Magnitude")
+    plt.title("FFT Clustering with DBSCAN")
+    plt.legend()
+    plt.show()
+
+# Example Usage
+folder_path = "path_to_audio_folder"  # Replace with your folder path
+files = load_audio_files(folder_path)
+features = extract_features(files, n_bins=1024)
+
+# Save features to CSV
+df = pd.DataFrame(features, columns=['File', 'Dominant Frequency', 'Average Magnitude'])
+df.to_csv('fft_features.csv', index=False)
+
+# Perform DBSCAN clustering
+labels = cluster_with_dbscan(features, eps=10, min_samples=3)
+
+# Visualize clusters
+plot_dbscan(features, labels)
+
+# Add labels to the feature DataFrame
+df['Cluster'] = labels
+print(df)
