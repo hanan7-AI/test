@@ -1,0 +1,140 @@
+import os
+import numpy as np
+from scipy.io import wavfile
+from scipy.fftpack import fft
+from sklearn.cluster import DBSCAN
+import matplotlib.pyplot as plt
+
+
+def load_audio_files(folder_path):
+    files = [os.path.join(folder_path, f) for f in os.listdir(folder_path) if f.endswith('.wav')]
+    return files
+
+
+def compute_fft(file_path, n_bins=1024):
+    samplerate, data = wavfile.read(file_path)
+    data = data / np.max(np.abs(data))  # Normalize
+    fft_result = fft(data)
+    freqs = np.fft.fftfreq(len(fft_result), 1/samplerate)
+    positive_freqs = freqs[freqs > 0]
+    magnitude = np.abs(fft_result[freqs > 0])
+    return positive_freqs[:n_bins], magnitude[:n_bins]
+
+
+def extract_features(files, n_bins=1024):
+    feature_list = []
+    for file in files:
+        freqs, magnitudes = compute_fft(file, n_bins)
+        freq = freqs 
+        magnitude = np.abs(magnitudes) 
+        feature_list.append([file, freq, magnitude])
+    return feature_list
+
+def cluster_with_dbscan(features, eps=10, min_samples=3):
+    feature_matrix = np.array([f[1:] for f in features]) 
+    dbscan = DBSCAN(eps=eps, min_samples=min_samples)
+    labels = dbscan.fit_predict(feature_matrix)
+    return labels
+
+def plot_dbscan(features, labels):
+    feature_matrix = np.array([f[1:] for f in features])
+    unique_labels = set(labels)
+    plt.figure(figsize=(8, 4))
+    for label in unique_labels:
+        if label == -1:
+            # Noise points
+            color = 'k'
+            label_name = 'Noise'
+        else:
+            color = plt.cm.jet(float(label) / max(unique_labels))
+            label_name = f"Cluster {label}"
+        plt.scatter(feature_matrix[labels == label, 0], feature_matrix[labels == label, 1],
+                    c=[color], label=label_name, edgecolor='k', alpha=0.6)
+    plt.xlabel("Dominant Frequency (Hz)")
+    plt.ylabel("Average Magnitude")
+    plt.title("FFT Clustering with DBSCAN")
+    plt.legend()
+    plt.show()
+
+folder_path = r"C:\Users\alqahth\OneDrive - Air Products and Chemicals, Inc\Desktop\deep_clustring\location_2" 
+files = load_audio_files(folder_path)
+features = extract_features(files, n_bins=1024)
+labels = cluster_with_dbscan(features, eps=10, min_samples=3)
+plot_dbscan(features, labels)
+
+
+ValueError                                Traceback (most recent call last)
+Cell In[59], line 4
+      2 files = load_audio_files(folder_path)
+      3 features = extract_features(files, n_bins=1024)
+----> 4 labels = cluster_with_dbscan(features, eps=10, min_samples=3)
+      5 plot_dbscan(features, labels)
+
+Cell In[57], line 4, in cluster_with_dbscan(features, eps, min_samples)
+      2 feature_matrix = np.array([f[1:] for f in features]) 
+      3 dbscan = DBSCAN(eps=eps, min_samples=min_samples)
+----> 4 labels = dbscan.fit_predict(feature_matrix)
+      5 return labels
+
+File ~\AppData\Local\anaconda3\Lib\site-packages\sklearn\cluster\_dbscan.py:474, in DBSCAN.fit_predict(self, X, y, sample_weight)
+    449 def fit_predict(self, X, y=None, sample_weight=None):
+    450     """Compute clusters from a data or distance matrix and predict labels.
+    451 
+    452     Parameters
+   (...)
+    472         Cluster labels. Noisy samples are given the label -1.
+    473     """
+--> 474     self.fit(X, sample_weight=sample_weight)
+    475     return self.labels_
+
+File ~\AppData\Local\anaconda3\Lib\site-packages\sklearn\base.py:1473, in _fit_context.<locals>.decorator.<locals>.wrapper(estimator, *args, **kwargs)
+   1466     estimator._validate_params()
+   1468 with config_context(
+   1469     skip_parameter_validation=(
+   1470         prefer_skip_nested_validation or global_skip_validation
+   1471     )
+   1472 ):
+-> 1473     return fit_method(estimator, *args, **kwargs)
+
+File ~\AppData\Local\anaconda3\Lib\site-packages\sklearn\cluster\_dbscan.py:395, in DBSCAN.fit(self, X, y, sample_weight)
+    366 @_fit_context(
+    367     # DBSCAN.metric is not validated yet
+    368     prefer_skip_nested_validation=False
+    369 )
+    370 def fit(self, X, y=None, sample_weight=None):
+    371     """Perform DBSCAN clustering from features, or distance matrix.
+    372 
+    373     Parameters
+   (...)
+    393         Returns a fitted instance of self.
+    394     """
+--> 395     X = self._validate_data(X, accept_sparse="csr")
+    397     if sample_weight is not None:
+    398         sample_weight = _check_sample_weight(sample_weight, X)
+
+File ~\AppData\Local\anaconda3\Lib\site-packages\sklearn\base.py:633, in BaseEstimator._validate_data(self, X, y, reset, validate_separately, cast_to_ndarray, **check_params)
+    631         out = X, y
+    632 elif not no_val_X and no_val_y:
+--> 633     out = check_array(X, input_name="X", **check_params)
+    634 elif no_val_X and not no_val_y:
+    635     out = _check_y(y, **check_params)
+
+File ~\AppData\Local\anaconda3\Lib\site-packages\sklearn\utils\validation.py:1058, in check_array(array, accept_sparse, accept_large_sparse, dtype, order, copy, force_writeable, force_all_finite, ensure_2d, allow_nd, ensure_min_samples, ensure_min_features, estimator, input_name)
+   1053     raise ValueError(
+   1054         "dtype='numeric' is not compatible with arrays of bytes/strings."
+   1055         "Convert your data to numeric values explicitly instead."
+   1056     )
+   1057 if not allow_nd and array.ndim >= 3:
+-> 1058     raise ValueError(
+   1059         "Found array with dim %d. %s expected <= 2."
+   1060         % (array.ndim, estimator_name)
+   1061     )
+   1063 if force_all_finite:
+   1064     _assert_all_finite(
+   1065         array,
+   1066         input_name=input_name,
+   1067         estimator_name=estimator_name,
+   1068         allow_nan=force_all_finite == "allow-nan",
+   1069     )
+
+ValueError: Found array with dim 3. DBSCAN expected <= 2.
