@@ -1,0 +1,24 @@
+def plot_kmeans(features, labels, centers):
+    plt.figure(figsize=(8, 6))
+    unique_labels = np.unique(labels)
+    colors = plt.cm.jet(np.linspace(0, 1, len(unique_labels)))  # Generate a colormap
+
+    for label, color in zip(unique_labels, colors):
+        cluster_data = features[labels == label]
+        for row in cluster_data:
+            plt.plot(row, color=color, alpha=0.5)
+        plt.plot(centers[label], color=color, linewidth=2, label=f"Cluster {label}")  # Cluster center
+
+    plt.xlabel("Frequency Bin")
+    plt.ylabel("Magnitude")
+    plt.title("K-Means Clustering of Magnitude Features")
+    plt.legend()
+    plt.show()
+
+
+# Main script
+folder_path = r"C:\Users\alqahth\OneDrive - Air Products and Chemicals, Inc\Desktop\deep_clustring\location_2"
+files = load_audio_files(folder_path)
+features = extract_features(files, n_bins=1024)
+labels, centers = cluster_with_kmeans(features, n_clusters=3)
+plot_kmeans(features, labels, centers)
