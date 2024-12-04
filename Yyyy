@@ -1,0 +1,56 @@
+import os
+import numpy as np
+from scipy.io import wavfile
+from scipy.fftpack import fft
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+
+
+def load_audio_files(folder_path):
+    files = [os.path.join(folder_path, f) for f in os.listdir(folder_path) if f.endswith('.wav')]
+    return files
+
+
+def compute_fft(file_path, n_bins=1024):
+    samplerate, data = wavfile.read(file_path)
+    data = data / np.max(np.abs(data))  # Normalize
+    fft_result = fft(data)
+    magnitude = np.abs(fft_result[:n_bins])  # Take absolute magnitude
+    return magnitude
+
+
+def extract_features(files, n_bins=1024):
+    feature_list = []
+    for file in files:
+        magnitude = compute_fft(file, n_bins)
+        feature_list.append(magnitude)
+    return np.array(feature_list)
+
+
+def cluster_with_kmeans(features, n_clusters=3):
+    kmeans = KMeans(n_clusters=n_clusters, random_state=0)
+    labels = kmeans.fit_predict(features)
+    return labels, kmeans.cluster_centers_
+
+
+def plot_kmeans(features, labels, centers):
+    plt.figure(figsize=(8, 4))
+    unique_labels = np.unique(labels)
+    for label in unique_labels:
+        cluster_data = features[labels == label]
+        for row in cluster_data:
+            plt.plot(row, alpha=0.5, label=f"Cluster {label}" if f"Cluster {label}" not in plt.gca().get_legend_handles_labels()[1] else "")
+        plt.plot(centers[label], color='k', linewidth=2, label=f"Center {label}")
+    plt.xlabel("Frequency Bin")
+    plt.ylabel("Magnitude")
+    plt.title("K-Means Clustering of Magnitude Features")
+    plt.legend()
+    plt.show()
+
+
+# Main script
+folder_path = r"C:\Users\alqahth\OneDrive - Air Products and Chemicals, Inc\Desktop\deep_clustring\location_2"
+files = load_audio_files(folder_path)
+features = extract_features(files, n_bins=1024)
+labels, centers = cluster_with_kmeans(features, n_clusters=3)
+plot_kmeans(features, labels, centers)
