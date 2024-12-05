@@ -1,0 +1,4 @@
+for n_clusters in range(2, 8):
+    labels = cluster_with_kmeans(features, n_clusters)
+    print(f"Plotting clusters for n_clusters = {n_clusters}")
+    plot_clusters(features, labels, n_clusters)
